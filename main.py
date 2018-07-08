@@ -9,16 +9,16 @@ import time
 
 def parse_args():
     desc = "PyTorch implementation of SR collections"
-    train_dataset = "train2014_2000"
+    train_dataset = "Set14"
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('--model_name', type=str, default='EnhanceNet')
     parser.add_argument('--model_loss', type=str, default='PAT')
     parser.add_argument('--D_period', type=int, default=3)
     parser.add_argument('--data_dir', type=str,
-                        default='/home/cvlab/Desktop/Dataset')
+                        default='/home/home/Desktop/Dataset')
     parser.add_argument('--train_dataset', type=list, default=[train_dataset], choices=['train2014', 'train2014 1960_hr', 'train2017-39907', 'train2014_2000'],
                         help='The name of training dataset')
-    parser.add_argument('--test_dataset', type=list, default=['Set5', 'Set14'], choices=['text', 'Set5', 'Set14', 'Urban100', 'people', 'food'],
+    parser.add_argument('--test_dataset', type=list, default=['Set5', 'Set14'], choices=['text', 'Set5', 'Set14', 'people', 'food'],
                         help='The name of test dataset')
     parser.add_argument('--crop_size', type=int, default=128,
                         help='Size of cropped HR image')
@@ -28,7 +28,7 @@ def parse_args():
                         help='The number of channels to super-resolve')
     parser.add_argument('--scale_factor', type=int,
                         default=4, help='Size of scale factor')
-    parser.add_argument('--num_epochs', type=int, default=100,
+    parser.add_argument('--num_epochs', type=int, default=5,
                         help='The number of epochs to run')
     parser.add_argument('--previous_epochs', type=int, default=0,
                         help='The number of previous epochs to run')
@@ -45,7 +45,7 @@ def parse_args():
     parser.add_argument('--patchloss', type=bool, default=True)
     parser.add_argument("--patch_size", type=int, default=16)
     parser.add_argument('--gpu_mode', type=bool, default=True)
-    parser.add_argument('--loss_F', type=str, default='MSE',
+    parser.add_argument('--loss_F', type=str, default='BCEWithLogitsLoss',
                         choices=["BCEWithLogitsLoss", "MSE", "BCE", "CrossEntropyLoss"])
 
     #parser.add_argument('--gpu_mode', type=bool, default=False)

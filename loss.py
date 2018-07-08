@@ -27,7 +27,7 @@ def gram_matrix(v):
     return tf.matmul(v, v, transpose_a=True)
 
 
-def tf_op(patch_size,x):
+def tf_op(patch_size, x):
     # [256,64,16,16]  ->  [256,16,16,64]
     x = torch.transpose(x, 1, 3)
     a, b, crop_size, c = x.size()
@@ -115,34 +115,19 @@ class Loss:
             # 輸入整張圖到model，將conv1_1，conv2_1，conv3_1的feature map取出
             # 並切成16*16大小做loss運算
             ###############################################
-            # print("creat T loss")
-            # self.T_model, style_losses = StyleLoss.get_style_model_and_losses(self, self.vgg19,
-            #                                                                   self.normalization_mean, self.normalization_std, x_, recon_image)
-            # self.T_model(recon_image)
-            # # utils.print_network(self.T_model)
-            # i = 0
-            # for sl in style_losses:
-            #     if i == style_losses.__len__():
-            #         style_score += sl.loss*0.3
-            #         i += 1
-            #     else:
-            #         style_score += sl.loss
-
-            # style_score = style_score.cuda() if self.gpu_mode else style_score
-
             loss_conv1_1 = T_loss_op(self.patch_size,
                                      self_E.conv1_1, recon_image, x_)
             loss_conv2_1 = T_loss_op(self.patch_size,
                                      self_E.conv2_1, recon_image, x_)
             loss_conv3_1 = T_loss_op(self.patch_size,
                                      self_E.conv3_1, recon_image, x_)
-            
+
             style_score = loss_conv1_1*0.3+loss_conv2_1+loss_conv3_1
-            temp = style_score*1e-6
-            tf.reset_default_graph()
+            #temp = style_score*1e-6
             # if not style_score==0:
             #     print("style=%.4f   style=%.4f" % (style_score, temp))
             # style_score = loss_conv1_1*0.3s
+            tf.reset_default_graph()
             loss_T.append(loss_conv1_1)
             loss_T.append(loss_conv2_1)
             loss_T.append(loss_conv3_1)
