@@ -31,12 +31,11 @@ def tf_op(patch_size, x):
     # [256,64,16,16]  ->  [256,16,16,64]
     x = torch.transpose(x, 1, 3)
     a, b, crop_size, c = x.size()
-    c = x.shape[3]
     # x.numpy()  <-  pytorch_Tensor 轉 numpy
     # tf.convert_to_tensor()   <- numpy 轉 tf
     tf_x = tf.convert_to_tensor(x.cpu().numpy())
 
-    #tf_x = normalize(tf_x)
+    # tf_x = normalize(tf_x)
     assert crop_size % patch_size == 0 and crop_size % patch_size == 0
 
     # [b * ?, h/p, w/p, c] [32,128,128,64]->[8192,8,8,64]
@@ -123,7 +122,7 @@ class Loss:
                                      self_E.conv3_1, recon_image, x_)
 
             style_score = loss_conv1_1*0.3+loss_conv2_1+loss_conv3_1
-            #temp = style_score*1e-6
+            # temp = style_score*1e-6
             # if not style_score==0:
             #     print("style=%.4f   style=%.4f" % (style_score, temp))
             # style_score = loss_conv1_1*0.3s

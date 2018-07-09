@@ -22,7 +22,7 @@ def parse_args():
                         help='The name of test dataset')
     parser.add_argument('--crop_size', type=int, default=128,
                         help='Size of cropped HR image')
-    parser.add_argument('--num_threads', type=int, default=100,  # 調整
+    parser.add_argument('--num_threads', type=int, default=100,  # ??
                         help='number of threads for data loader to use')
     parser.add_argument('--num_channels', type=int, default=3,
                         help='The number of channels to super-resolve')
