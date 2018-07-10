@@ -15,14 +15,14 @@ def parse_args():
     parser.add_argument('--model_loss', type=str, default='PAT')
     parser.add_argument('--D_period', type=int, default=3)
     parser.add_argument('--data_dir', type=str,
-                        default='/home/home/Desktop/Dataset')
+                        default='/home/cvlab/Desktop/Dataset')
     parser.add_argument('--train_dataset', type=list, default=[train_dataset], choices=['train2014', 'train2014 1960_hr', 'train2017-39907', 'train2014_2000'],
                         help='The name of training dataset')
     parser.add_argument('--test_dataset', type=list, default=['Set5', 'Set14'], choices=['text', 'Set5', 'Set14', 'people', 'food'],
                         help='The name of test dataset')
     parser.add_argument('--crop_size', type=int, default=128,
                         help='Size of cropped HR image')
-    parser.add_argument('--num_threads', type=int, default=100,  # ??
+    parser.add_argument('--num_threads', type=int, default=0,  # ??
                         help='number of threads for data loader to use')
     parser.add_argument('--num_channels', type=int, default=3,
                         help='The number of channels to super-resolve')
