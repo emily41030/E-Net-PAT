@@ -18,7 +18,8 @@ def parse_args():
                         default='/home/cvlab/Desktop/Dataset')
     parser.add_argument('--train_dataset', type=list, default=[train_dataset], choices=['train2014', 'train2014 1960_hr', 'train2017-39907', 'train2014_2000'],
                         help='The name of training dataset')
-    parser.add_argument('--test_dataset', type=list, default=['Set5', 'Set14'], choices=['text', 'Set5', 'Set14', 'Urban100', 'people', 'food'],
+    # parser.add_argument('--test_dataset', type=list, default=['Set5', 'Set14', 'License_plate'], choices=['text', 'Set5', 'Set14', 'License_plate', 'people', 'food'],
+    parser.add_argument('--test_dataset', type=list, default=['License_plate'], choices=['text', 'Set5', 'Set14', 'License_plate', 'people', 'food'],
                         help='The name of test dataset')
     parser.add_argument('--crop_size', type=int, default=128,
                         help='Size of cropped HR image')
@@ -28,11 +29,11 @@ def parse_args():
                         help='The number of channels to super-resolve')
     parser.add_argument('--scale_factor', type=int,
                         default=4, help='Size of scale factor')
-    parser.add_argument('--num_epochs', type=int, default=100,
+    parser.add_argument('--num_epochs', type=int, default=200,
                         help='The number of epochs to run')
     parser.add_argument('--previous_epochs', type=int, default=0,
                         help='The number of previous epochs to run')
-    parser.add_argument('--save_epochs', type=int, default=1,
+    parser.add_argument('--save_epochs', type=int, default=20,
                         help='Save trained model every this epochs')
     parser.add_argument('--batch_size', type=int,
                         default=16, help='training batch size')
@@ -45,7 +46,7 @@ def parse_args():
     parser.add_argument('--patchloss', type=bool, default=True)
     parser.add_argument("--patch_size", type=int, default=16)
     parser.add_argument('--gpu_mode', type=bool, default=True)
-    parser.add_argument('--loss_F', type=str, default='BCEWithLogitsLoss',
+    parser.add_argument('--loss_F', type=str, default='MSE',
                         choices=["BCEWithLogitsLoss", "MSE", "BCE", "CrossEntropyLoss"])
 
     #parser.add_argument('--gpu_mode', type=bool, default=False)
@@ -58,9 +59,9 @@ def parse_args():
 
 def check_args(args):
     # --save_dir
-    # args.save_dir = os.path.join(args.save_dir, args.model_name)
-    # if not os.path.exists(args.save_dir):
-    #     os.makedirs(args.save_dir)
+    args.save_dir = os.path.join(args.save_dir, args.model_name)
+    if not os.path.exists(args.save_dir):
+        os.makedirs(args.save_dir)
 
     # --epoch
     try:
@@ -97,7 +98,7 @@ def main():
     else:
         raise Exception("[!] There is no option for " + args.model_name)
 
-    net.train()
+    # net.train()
 
     # test
     net.test()

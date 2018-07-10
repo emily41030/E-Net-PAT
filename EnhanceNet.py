@@ -311,8 +311,8 @@ class EnhanceNet(object):
         self.model = Net(3, 64, 3, 1)
         # load model
 
-        utils.load_model(self, False)
-        # self.model.load_state_dict(torch.load('epoch0~50.pkl'))
+        #utils.load_model(self, False)
+        self.model.load_state_dict(torch.load('epoch0_70.pkl'))
 
         if self.gpu_mode:
             self.model.cuda()
