@@ -137,6 +137,7 @@ class EnhanceNet(object):
         self.model.train()
 
         for epoch in range(self.num_epochs):
+
             # learning rate is decayed by a factor of 2 every 40 epochs
             if (epoch+1) % 40 == 0:
                 for param_group in self.optimizer.param_groups:
@@ -157,7 +158,7 @@ class EnhanceNet(object):
                 recon_image = recon_image + bc_y_
                 loss_G = 0
                 loss_D = 0
-
+                style_loss = 0
                 loss_T = []
                 if 'A' in self.model_loss:
                     # ---------------------

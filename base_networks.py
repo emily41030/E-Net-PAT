@@ -243,7 +243,6 @@ class Net(nn.Module):
         out = self.model(x)
         return out
 
-
 class LossNet(nn.Module):
     def creat_loss_Net(self):
         self.vgg19 = models.vgg19(pretrained=True).features
@@ -283,13 +282,13 @@ class LossNet(nn.Module):
             self.loss = nn.MSELoss()
 
         if self.gpu_mode:
-            self.normalization_mean = torch.Tensor(
+            self.normalization_mean = torch.tensor(
                 [0.485, 0.456, 0.406]).cuda()
-            self.normalization_std = torch.Tensor(
+            self.normalization_std = torch.tensor(
                 [0.229, 0.224, 0.225]).cuda()
         else:
-            self.normalization_mean = torch.Tensor([0.485, 0.456, 0.406])
-            self.normalization_std = torch.Tensor([0.229, 0.224, 0.225])
+            self.normalization_mean = torch.tensor([0.485, 0.456, 0.406])
+            self.normalization_std = torch.tensor([0.229, 0.224, 0.225])
 
         return self
 
