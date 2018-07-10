@@ -9,33 +9,33 @@ import time
 
 def parse_args():
     desc = "PyTorch implementation of SR collections"
-    train_dataset = "Set14"
+    train_dataset = "train2014_9000"
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('--model_name', type=str, default='EnhanceNet')
     parser.add_argument('--model_loss', type=str, default='PAT')
     parser.add_argument('--D_period', type=int, default=3)
     parser.add_argument('--data_dir', type=str,
                         default='/home/cvlab/Desktop/Dataset')
-    parser.add_argument('--train_dataset', type=list, default=[train_dataset], choices=['train2014', 'train2014 1960_hr', 'train2017-39907', 'train2014_2000'],
+    parser.add_argument('--train_dataset', type=list, default=[train_dataset], choices=['train2014', 'train2014_9000', 'train2017-39907', 'train2014_2000'],
                         help='The name of training dataset')
     parser.add_argument('--test_dataset', type=list, default=['Set5', 'Set14'], choices=['text', 'Set5', 'Set14', 'people', 'food'],
                         help='The name of test dataset')
     parser.add_argument('--crop_size', type=int, default=128,
                         help='Size of cropped HR image')
-    parser.add_argument('--num_threads', type=int, default=0,  # ??
+    parser.add_argument('--num_threads', type=int, default=100,  # ??
                         help='number of threads for data loader to use')
     parser.add_argument('--num_channels', type=int, default=3,
                         help='The number of channels to super-resolve')
     parser.add_argument('--scale_factor', type=int,
                         default=4, help='Size of scale factor')
-    parser.add_argument('--num_epochs', type=int, default=5,
+    parser.add_argument('--num_epochs', type=int, default=200,
                         help='The number of epochs to run')
     parser.add_argument('--previous_epochs', type=int, default=0,
                         help='The number of previous epochs to run')
     parser.add_argument('--save_epochs', type=int, default=1,
                         help='Save trained model every this epochs')
     parser.add_argument('--batch_size', type=int,
-                        default=8, help='training batch size')
+                        default=16, help='training batch size')
     parser.add_argument('--test_batch_size', type=int,
                         default=1, help='testing batch size')
     parser.add_argument('--save_dir', type=str, default='Result_'+train_dataset,

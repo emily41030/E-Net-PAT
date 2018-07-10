@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import os
 import imageio
 from scipy.misc import imsave
+
 # from edge_detector import edge_detect
 
 
@@ -382,4 +383,5 @@ def print_loss(self, epoch, len_data_loader, loss, style_score, loss_output_m2, 
 
         # print('  lossT1: %.8f   lossT2: %.8f   lossT3: %.8f' %
         #       (loss_T[0], loss_T[1], loss_T[2]), end="")
+
     print()
