@@ -345,7 +345,7 @@ def save_model(self, epoch=None):
         print('Trained model is saved.')
 
 
-def load_model(self, train_load):
+def load_model(self, train_load, model_E):
     model_dir = os.path.join(self.save_dir, 'model')
 
     if not train_load:
@@ -354,11 +354,17 @@ def load_model(self, train_load):
             % (self.pre_epochs, self.num_epochs)
     else:
         # 再訓練的時候先匯入之前訓練的model
-        model_name = model_dir + '/epoch%d~%d.pkl'\
-            % (0, self.pre_epochs)
+        if model_E:
+            model_name = self.pretrain_path + '/model/'+self.pretrain_E_model
+        else:
+            model_name = self.pretrain_path + '/model/'+self.pretrain_D_model
 
     if os.path.exists(model_name):
-        self.model.load_state_dict(torch.load(model_name))
+        if model_E:
+            self.model.load_state_dict(torch.load(model_name))
+        else:
+            self.discriminator.load_state_dict(torch.load(model_name))
+
         print('Trained model is loaded '+model_name)
         return True
     else:
@@ -383,3 +389,34 @@ def print_loss(self, epoch, len_data_loader, loss, style_score, loss_output_m2, 
         # print('  lossT1: %.8f   lossT2: %.8f   lossT3: %.8f' %
         #       (loss_T[0], loss_T[1], loss_T[2]), end="")
     print()
+
+
+def save_dir_name(self):
+
+    save_dir = self.save_dir
+    if 'AT' in self.model_loss:
+        self.save_dir = os.path.join(save_dir+'_' + self.model_loss + ' epoch%s~%d batch%d lr%.g overlap%d patch%d loss_F=%s period%d' %
+                                     (self.pre_epochs, self.num_epochs, self.batch_size, self.lr, self.overlap, self.patch_size, self.loss_F, self.D_period))
+        if self.pre_epochs != "0":
+            self.pretrain_path = (save_dir+'_' + self.model_loss + ' epoch%s batch%d lr%.g overlap%d patch%d loss_F=%s period%d' %
+                                  (self.pre_epochs, self.batch_size, self.lr,
+                                   self.overlap, self.patch_size, self.loss_F, self.D_period))
+
+    elif 'T' in self.model_loss:
+        self.save_dir = os.path.join(save_dir+'_' + self.model_loss + ' epoch%s~%d batch%d lr%.g overlap%d patch%d' %
+                                     (self.pre_epochs, self.num_epochs, self.batch_size, self.lr, self.overlap, self.patch_size))
+        if self.pre_epochs != "0":
+            self.pretrain_path = (save_dir+'_' + self.model_loss + ' epoch%s batch%d lr%.g overlap%d patch%d' %
+                                  (self.pre_epochs, self.batch_size, self.lr, self.overlap, self.patch_size))
+    elif 'A' in self.model_loss:
+        self.save_dir = os.path.join(save_dir+'_' + self.model_loss + ' epoch%s~%d batch%d lr%.g loss_F=%s period%d' %
+                                     (self.pre_epochs, self.num_epochs, self.batch_size, self.lr, self.loss_F, self.D_period))
+        if self.pre_epochs != "0":
+            self.pretrain_path = (save_dir+'_' + self.model_loss + ' epoch%s batch%d lr%.g loss_F=%s period%d' %
+                                  (self.pre_epochs, self.batch_size, self.lr, self.loss_F, self.D_period))
+    else:
+        self.save_dir = os.path.join(save_dir+'_' + self.model_loss + ' epoch%s~%d batch%d lr%.g overlap%d' %
+                                     (self.pre_epochs, self.num_epochs, self.batch_size, self.lr, self.overlap))
+        if self.pre_epochs != "0":
+            self.pretrain_path = (save_dir+'_' + self.model_loss + ' epoch%s batch%d lr%.g overlap%d' %
+                                  (self.pre_epochs, self.batch_size, self.lr, self.overlap))

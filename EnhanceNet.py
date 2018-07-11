@@ -44,13 +44,12 @@ class EnhanceNet(object):
         self.model_loss = args.model_loss
         self.patch_size = args.patch_size
         self.D_period = args.D_period
+        self.pretrain_E_model = args.pretrain_E_model
+        self.pretrain_D_model = args.pretrain_D_model
         self.loss_F = args.loss_F
-        if 'A' in args.model_loss:
-            self.save_dir = os.path.join(args.save_dir+'_' + args.model_loss + ' epoch%d~%d batch%d lr%.g overlap%d patch%d loss_F=%s period%d' %
-                                         (args.previous_epochs, args.num_epochs, args.batch_size, args.lr, args.overlap, args.patch_size, args.loss_F, self.D_period))
-        else:
-            self.save_dir = os.path.join(args.save_dir+'_' + args.model_loss + ' epoch%d~%d batch%d lr%.g overlap%d patch%d' %
-                                         (args.previous_epochs, args.num_epochs, args.batch_size, args.lr, args.overlap, args.patch_size))
+        self.save_dir = os.path.join(args.save_dir)
+        self.pretrain_path = ""
+        utils.save_dir_name(self)
 
     def load_dataset(self, dataset, is_train=True):
         if self.num_channels == 1:
@@ -86,7 +85,9 @@ class EnhanceNet(object):
             # weigh initialization
             self.model.weight_init()
         else:
-            utils.load_model(self, True)
+            # (self, is training or not, is E_model(True) or D_model(False))
+            utils.load_model(self, True, True)
+            # self.model.load_state_dict(torch.load(self.E_pretrain))
 
         # optimizer
         self.optimizer = optim.Adam(
@@ -99,6 +100,9 @@ class EnhanceNet(object):
             Tensor = torch.cuda.FloatTensor if self.gpu_mode else torch.Tensor
             self.optimizer_D = torch.optim.Adam(
                 self.discriminator.parameters(), lr=0.0002, betas=(0.5, 0.999))
+
+            if self.pre_epochs != 0:
+                utils.load_model(self, True, False)
 
             if self.loss_F == "BCEWithLogitsLoss":
                 self.criterion_GAN = nn.BCEWithLogitsLoss(size_average=False).cuda(
@@ -311,8 +315,8 @@ class EnhanceNet(object):
         self.model = Net(3, 64, 3, 1)
         # load model
 
-        #utils.load_model(self, False)
-        self.model.load_state_dict(torch.load('epoch0_70.pkl'))
+        utils.load_model(self, False, False)
+        # self.model.load_state_dict(torch.load('epoch0_70.pkl'))
 
         if self.gpu_mode:
             self.model.cuda()

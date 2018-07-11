@@ -12,7 +12,7 @@ def parse_args():
     train_dataset = "train2014_9000"
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('--model_name', type=str, default='EnhanceNet')
-    parser.add_argument('--model_loss', type=str, default='PAT')
+    parser.add_argument('--model_loss', type=str, default='PA')
     parser.add_argument('--D_period', type=int, default=3)
     parser.add_argument('--data_dir', type=str,
                         default='/home/cvlab/Desktop/Dataset')
@@ -31,8 +31,12 @@ def parse_args():
                         default=4, help='Size of scale factor')
     parser.add_argument('--num_epochs', type=int, default=200,
                         help='The number of epochs to run')
-    parser.add_argument('--previous_epochs', type=int, default=0,
+    parser.add_argument('--previous_epochs', type=str, default="0~50",
                         help='The number of previous epochs to run')
+    parser.add_argument('--pretrain_E_model',
+                        type=str, default="epoch0~50.pkl")
+    parser.add_argument('--pretrain_D_model',
+                        type=str, default="D_epoch0~50.pkl")
     parser.add_argument('--save_epochs', type=int, default=20,
                         help='Save trained model every this epochs')
     parser.add_argument('--batch_size', type=int,
@@ -98,7 +102,7 @@ def main():
     else:
         raise Exception("[!] There is no option for " + args.model_name)
 
-    # net.train()
+    net.train()
 
     # test
     net.test()
