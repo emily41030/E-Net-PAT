@@ -27,7 +27,7 @@ def gram_matrix(v):
     return tf.matmul(v, v, transpose_a=True)
 
 
-def tf_op(patch_size,x):
+def tf_op(patch_size, x):
     # [256,64,16,16]  ->  [256,16,16,64]
     x = torch.transpose(x, 1, 3)
     a, b, crop_size, c = x.size()
@@ -94,6 +94,12 @@ class Loss:
                     self_E.discriminator(recon_image), self_E.discriminator(x_))
                 loss_G = self.mse_loss(
                     self_E.discriminator(recon_image), self_E.fake)
+            else:
+                # loss_a = self.mse_loss(self_E.discriminator(
+                #     recon_image), self_E.discriminator(x_))
+                loss_a = 0.5 * \
+                    torch.mean((self_E.discriminator(recon_image) - 1)**2)
+                loss_G = loss_a
 
         if 'P' in self_E.model_loss:
             # print("creat P loss")
@@ -136,7 +142,7 @@ class Loss:
                                      self_E.conv2_1, recon_image, x_)
             loss_conv3_1 = T_loss_op(self.patch_size,
                                      self_E.conv3_1, recon_image, x_)
-            
+
             style_score = loss_conv1_1*0.3+loss_conv2_1+loss_conv3_1
             temp = style_score*1e-6
             tf.reset_default_graph()

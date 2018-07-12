@@ -9,10 +9,10 @@ import time
 
 def parse_args():
     desc = "PyTorch implementation of SR collections"
-    train_dataset = "train2014_9000"
+    train_dataset = "train2014_2000"
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('--model_name', type=str, default='EnhanceNet')
-    parser.add_argument('--model_loss', type=str, default='PA')
+    parser.add_argument('--model_loss', type=str, default='PAT')
     parser.add_argument('--D_period', type=int, default=3)
     parser.add_argument('--data_dir', type=str,
                         default='/home/cvlab/Desktop/Dataset')
@@ -31,16 +31,16 @@ def parse_args():
                         default=4, help='Size of scale factor')
     parser.add_argument('--num_epochs', type=int, default=200,
                         help='The number of epochs to run')
-    parser.add_argument('--previous_epochs', type=str, default="0~50",
+    parser.add_argument('--previous_epochs', type=str, default="0",
                         help='The number of previous epochs to run')
     parser.add_argument('--pretrain_E_model',
-                        type=str, default="epoch0~50.pkl")
+                        type=str, default="epoch0~110.pkl")
     parser.add_argument('--pretrain_D_model',
-                        type=str, default="D_epoch0~50.pkl")
-    parser.add_argument('--save_epochs', type=int, default=20,
+                        type=str, default="D_epoch0~110.pkl")
+    parser.add_argument('--save_epochs', type=int, default=5,
                         help='Save trained model every this epochs')
     parser.add_argument('--batch_size', type=int,
-                        default=16, help='training batch size')
+                        default=8, help='training batch size')
     parser.add_argument('--test_batch_size', type=int,
                         default=1, help='testing batch size')
     parser.add_argument('--save_dir', type=str, default='Result_'+train_dataset,
@@ -50,8 +50,8 @@ def parse_args():
     parser.add_argument('--patchloss', type=bool, default=True)
     parser.add_argument("--patch_size", type=int, default=16)
     parser.add_argument('--gpu_mode', type=bool, default=True)
-    parser.add_argument('--loss_F', type=str, default='MSE',
-                        choices=["BCEWithLogitsLoss", "MSE", "BCE", "CrossEntropyLoss"])
+    parser.add_argument('--loss_F', type=str, default='LSGAN',
+                        choices=["BCEWithLogitsLoss", "MSE", "BCE", "CrossEntropyLoss", "LSGAN"])
 
     #parser.add_argument('--gpu_mode', type=bool, default=False)
 
@@ -63,7 +63,7 @@ def parse_args():
 
 def check_args(args):
     # --save_dir
-    args.save_dir = os.path.join(args.save_dir, args.model_name)
+    args.save_dir = os.path.join(args.save_dir)
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
 
@@ -102,6 +102,7 @@ def main():
     else:
         raise Exception("[!] There is no option for " + args.model_name)
 
+    # net.zssr()
     net.train()
 
     # test

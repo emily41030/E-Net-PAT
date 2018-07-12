@@ -4,6 +4,8 @@ import random
 from torchvision import transforms
 from torchvision.transforms import functional as F
 import numbers
+import math
+
 
 class RandomRotationFromSequence(object):
     """Rotate the image by angle.
@@ -45,10 +47,12 @@ class RandomRotationFromSequence(object):
         Returns:
             PIL Image: Rotated image.
         """
-        hr, lr = data
+        hr, lr, bc = data
         angle = self.get_params(self.degrees)
         return F.rotate(hr, angle, self.resample, self.expand, self.center), \
-                F.rotate(lr, angle, self.resample, self.expand, self.center)
+            F.rotate(lr, angle, self.resample, self.expand, self.center),\
+            F.rotate(bc, angle, self.resample, self.expand, self.center)
+
 
 class RandomHorizontalFlip(object):
     """Horizontally flip the given PIL Image randomly with a probability of 0.5."""
@@ -60,10 +64,11 @@ class RandomHorizontalFlip(object):
         Returns:
             PIL Image: Randomly flipped image.
         """
-        hr, lr = data
+        hr, lr, bc = data
         if random.random() < 0.5:
-            return F.hflip(hr), F.hflip(lr)
-        return hr, lr
+            return F.hflip(hr), F.hflip(lr), F.hflip(bc)
+        return hr, lr, bc
+
 
 class RandomVerticalFlip(object):
     """Vertically flip the given PIL Image randomly with a probability of 0.5."""
@@ -75,10 +80,11 @@ class RandomVerticalFlip(object):
         Returns:
             PIL Image: Randomly flipped image.
         """
-        hr, lr = data
+        hr, lr, bc = data
         if random.random() < 0.5:
-            return F.vflip(hr), F.vflip(lr)
-        return hr, lr
+            return F.vflip(hr), F.vflip(lr), F.vflip(bc)
+        return hr, lr, bc
+
 
 class RandomCrop(object):
     """Crop the given PIL Image at a random location.
@@ -108,7 +114,7 @@ class RandomCrop(object):
         Returns:
             tuple: params (i, j, h, w) to be passed to ``crop`` for random crop.
         """
-        hr, lr = data
+        hr, lr, bc = data
         w, h = hr.size
         th, tw = output_size
         if w == tw or h == th:
@@ -128,13 +134,19 @@ class RandomCrop(object):
         Returns:
             PIL Image: Cropped image.
         """
-        hr, lr = data
+        hr, lr, bc = data
         if self.padding > 0:
             hr = F.pad(hr, self.padding)
             lr = F.pad(lr, self.padding)
-
+            bc = F.pad(bc, self.padding)
         i, j, h, w = self.get_params(data, self.size)
-        return F.crop(hr, i, j, h, w), F.crop(lr, i, j, h, w)
+        # if h % 4 != 0:
+        #     h = h+4-(h % 4)
+        # if w % 4 != 0:
+        #     w = w+4-(w % 4)
+        # return F.crop(hr, i, j, h, w), F.crop(lr, i, j, h/4, w/4),  F.crop(bc, i, j, h, w)
+        return F.crop(hr, i, j, h, w), F.crop(lr, i, j, h, w),  F.crop(bc, i, j, h, w)
+
 
 class ToTensor(object):
     """Convert a ``PIL Image`` or ``numpy.ndarray`` to tensor.
@@ -149,5 +161,5 @@ class ToTensor(object):
         Returns:
             Tensor: Converted image.
         """
-        hr, lr = data
-        return F.to_tensor(hr), F.to_tensor(lr)
+        hr, lr, bc = data
+        return F.to_tensor(hr), F.to_tensor(lr), F.to_tensor(bc)

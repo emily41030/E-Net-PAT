@@ -142,6 +142,7 @@ def save_img(img, img_num, save_dir='', is_training=False, is_SR=True):
             save_fn = save_dir + \
                 '/LR_result_{:d}'.format(img_num) + '.png'
     imsave(save_fn, save_img)
+    return save_fn
 
 
 def save_train_img(img, img_num, step, save_dir='', is_training=False, is_HR=False):
@@ -327,19 +328,21 @@ def save_model(self, epoch=None):
     model_dir = os.path.join(self.save_dir, 'model')
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
-    if epoch is None:
-        torch.save(self.model.state_dict(), model_dir + '/epoch%d~%d.pkl'
+    if 'Z' in self.model_loss:
+        torch.save(self.model.state_dict(), 'z_epoch.pkl')
+    elif epoch is None:
+        torch.save(self.model.state_dict(), model_dir + '/epoch%s~%d.pkl'
                    % (self.pre_epochs, self.num_epochs))
 
         if 'A' in self.model_loss:
-            torch.save(self.discriminator.state_dict(), model_dir + '/D_epoch%d~%d.pkl'
+            torch.save(self.discriminator.state_dict(), model_dir + '/D_epoch%s~%d.pkl'
                        % (self.pre_epochs, self.num_epochs))
     else:
-        torch.save(self.model.state_dict(), model_dir + '/epoch%d~%d.pkl'
+        torch.save(self.model.state_dict(), model_dir + '/epoch%s~%d.pkl'
                    % (self.pre_epochs, epoch))
 
         if 'A' in self.model_loss:
-            torch.save(self.discriminator.state_dict(), model_dir + "/D_epoch%d~%d.pkl"
+            torch.save(self.discriminator.state_dict(), model_dir + "/D_epoch%s~%d.pkl"
                        % (self.pre_epochs, epoch))
 
         print('Trained model is saved.')
@@ -350,7 +353,7 @@ def load_model(self, train_load, model_E):
 
     if not train_load:
         # 測試時匯入訓練好的model
-        model_name = model_dir + '/epoch%d~%d.pkl'\
+        model_name = model_dir + '/epoch%s~%d.pkl'\
             % (self.pre_epochs, self.num_epochs)
     else:
         # 再訓練的時候先匯入之前訓練的model
@@ -393,7 +396,7 @@ def print_loss(self, epoch, len_data_loader, loss, style_score, loss_output_m2, 
 
 def save_dir_name(self):
 
-    save_dir = self.save_dir
+    save_dir = self.save_dir+"/"+self.model_name
     if 'AT' in self.model_loss:
         self.save_dir = os.path.join(save_dir+'_' + self.model_loss + ' epoch%s~%d batch%d lr%.g overlap%d patch%d loss_F=%s period%d' %
                                      (self.pre_epochs, self.num_epochs, self.batch_size, self.lr, self.overlap, self.patch_size, self.loss_F, self.D_period))
