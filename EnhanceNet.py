@@ -104,7 +104,8 @@ class EnhanceNet(object):
 
             if self.pre_epochs != "0":
                 #utils.load_model(self, True, False)
-                self.model.load_state_dict(torch.load(self.pretrain_D_model))
+                self.discriminator.load_state_dict(
+                    torch.load(self.pretrain_D_model))
             if self.loss_F == "BCEWithLogitsLoss":
                 self.criterion_GAN = nn.BCEWithLogitsLoss(size_average=False).cuda(
                 ) if self.gpu_mode else nn.BCEWithLogitsLoss(size_average=False)
@@ -244,9 +245,12 @@ class EnhanceNet(object):
 
                     loss_a, loss_output_m2, loss_output_m5, style_score, loss_G, loss_T = Loss.loss_op(self,
                                                                                                        self, recon_image, x_)
+                    # loss = (2*0.1*loss_output_m2) + \
+                    #     (2*0.01*loss_output_m5) + \
+                    #     loss_a*1e-3 + style_score*1e-6
                     loss = (2*0.1*loss_output_m2) + \
                         (2*0.01*loss_output_m5) + \
-                        loss_a*1e-3 + style_score*1e-6
+                        loss_a*1e-3 + style_score
 
                     loss.backward()
                     self.optimizer.step()
@@ -335,8 +339,8 @@ class EnhanceNet(object):
         self.model = Net(3, 64, 3, 1)
         # load model
 
-        utils.load_model(self, False, False)
-        # self.model.load_state_dict(torch.load('epoch0~110.pkl'))
+        #utils.load_model(self, False, False)
+        self.model.load_state_dict(torch.load('epoch0~200.pkl'))
 
         if self.gpu_mode:
             self.model.cuda()
@@ -401,22 +405,24 @@ class EnhanceNet(object):
         self.model = Net(3, 64, 3, 1)
         # load model
         #utils.load_model(self, False, False)
-        self.model.load_state_dict(torch.load('epoch0~110.pkl'))
+        self.model.load_state_dict(torch.load('epoch0~200.pkl'))
 
-        for param in list(self.model.parameters())[:-2]:
-            param.requires_grad = False
         if self.gpu_mode:
             self.model.cuda()
         self.model.train()
-        save_dir = os.path.join(self.save_dir, 'z_result')
+        for param in list(self.model.parameters())[:-1]:
+            param.requires_grad = False
+        save_dir = os.path.join('z_result')
+        if not os.path.isdir(save_dir):
+            os.mkdir(save_dir)
         avg_loss = []
         num_batch = 100000
         epoch_loss = 0
-        learning_rate = 1e-4
+        learning_rate = 1e-5
         img = PIL.Image.open('SR_result_2.png')
-        loss = nn.L1Loss()
+        loss = nn.MSELoss()
         optimizer = optim.Adam(
-            list(self.model.parameters())[-2:], lr=learning_rate)
+            list(self.model.parameters())[-1:], lr=learning_rate)
         sampler = DataSampler(img, self.scale_factor, self.crop_size)
         for iter, (hr, lr, bc) in enumerate(sampler.generate_data()):
             lr = Variable(lr).cuda()
@@ -435,7 +441,7 @@ class EnhanceNet(object):
             # oi3 = img3.numpy()
             # oi3[np.where(oi3 < 0)] = 0.0
             # oi3[np.where(oi3 > 1)] = 1.0
-            # save_img3 = torch.from_numpy(oi)
+            # save_img3 = torch.from_numpy(oi3)
             # save_img3 = transforms.ToPILImage()(save_img3)
             # save_img3.show()
 

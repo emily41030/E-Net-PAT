@@ -24,7 +24,7 @@ class DataSampler:
             RandomRotationFromSequence([0, 90, 180, 270]),
             RandomHorizontalFlip(),
             RandomVerticalFlip(),
-            # RandomCrop(crop_size),
+            RandomCrop(crop_size),
             ToTensor()])
 
     def create_hr_lr_pairs(self):
@@ -55,7 +55,7 @@ class DataSampler:
             lr = hr.resize((int(x/self.sr_factor),
                             int(y/self.sr_factor)),
                            resample=PIL.Image.BICUBIC)
-
+            lr = lr.resize(hr.size, resample=PIL.Image.BICUBIC)
             # lr.save(os.path.join("mulLR_image")+'/lr_'+str(count)+'.png')
             bc = lr.resize(hr.size, resample=PIL.Image.BICUBIC)
             count += 1

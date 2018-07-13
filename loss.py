@@ -52,26 +52,114 @@ def tf_op(patch_size, x):
     return patches_tf_x
 
 
+class GramMatrix(nn.Module):
+    def forward(self, input):
+        a, b, c, d = input.size()  # a=batch size(=1)
+        # b=number of feature maps
+        # (c,d)=dimensions of a f. map (N=c*d)
+
+        features = input.view(a * b, c * d)  # resise F_XL into \hat F_XL
+
+        G = torch.mm(features, features.t())  # compute the gram product
+
+        # we 'normalize' the values of the gram matrix
+        # by dividing by the number of element in each feature maps.
+        return G.div(a * b * c * d)
+
+
+class StyleLoss(nn.Module):
+    def __init__(self, target, weight):
+        super(StyleLoss, self).__init__()
+        self.target = target.detach() * weight
+        self.weight = weight
+        self.gram = GramMatrix()
+        self.criterion = nn.MSELoss()
+
+    def forward(self, input):
+        self.output = input.clone()
+        self.G = self.gram.forward(input)
+        self.G.mul_(self.weight)
+        self.loss = self.criterion.forward(self.G, self.target)
+        return self.output
+
+    def backward(self, retain_variables=True):
+        self.loss.backward(retain_variables=retain_variables)
+        return self.loss
+
+
+def size_splits(tensor, split_sizes, dim=0):
+    """Splits the tensor according to chunks of split_sizes.
+
+    Arguments:
+        tensor (Tensor): tensor to split.
+        split_sizes (list(int)): sizes of chunks
+        dim (int): dimension along which to split the tensor.
+    """
+    if dim < 0:
+        dim += tensor.dim()
+
+    dim_size = tensor.size(dim)
+    sum1 = torch.sum(torch.Tensor(split_sizes))
+    if dim_size != sum1:
+        raise KeyError("Sum of split sizes does not equal tensor dim")
+
+    splits = torch.cumsum(torch.Tensor([0] + split_sizes), dim=0)[:-1]
+
+    return tuple(tensor.narrow(int(dim), int(start), int(length))
+                 for start, length in zip(splits, split_sizes))
+
+
+def torch_T_loss(patch_size, x):
+    split_sizes = []
+    for i in range(int(x.shape[2]/patch_size)):
+        split_sizes.append(patch_size)
+
+    res = size_splits(tensor=x, split_sizes=split_sizes, dim=2)
+
+    newa = torch.Tensor(0, 0, 0, 0).cuda()
+    for i in range(res.__len__()):
+        newa = torch.cat((res[i], newa), 0)
+
+    res = size_splits(tensor=newa, split_sizes=split_sizes, dim=3)
+    # img2 = res[0]
+    # oi2 = img2.numpy()
+    # oi2[np.where(oi2 < 0)] = 0.0
+    # oi2[np.where(oi2 > 1)] = 1.0
+    # save_img2 = torch.from_numpy(oi2)
+    # save_img2 = transforms.ToPILImage()(save_img2[0])
+    # save_img2.show()
+
+    newa = torch.Tensor(0, 0, 0, 0).cuda()
+    for i in range(res.__len__()):
+        newa = torch.cat((res[i], newa), 0)
+
+    return newa
+
+
 def T_loss_op(patch_size, model, recon, x):
     recon = model(recon).detach()
     x = model(x)
-    recon_r = tf_op(patch_size, recon)
-    x_r = tf_op(patch_size, x)
+    recon_r = torch_T_loss(patch_size, recon)
+    x_r = torch_T_loss(patch_size, x)
 
-    loss = tf.losses.mean_squared_error(
-        gram_matrix(recon_r),
-        gram_matrix(x_r),
-        reduction=tf.losses.Reduction.MEAN
-    )
+    gram = GramMatrix()
+    mse = nn.MSELoss()
 
-    sess = tf.Session()
-    sess.run(tf.global_variables_initializer())
-    # tf 轉 numpy
-    loss = loss.eval(session=sess)
-    # numpy 轉 pytorch_Tensor
-    loss_temp = torch.from_numpy(np.array(loss, dtype=np.float64))
-    # loss= Variable(loss)
-    tf.reset_default_graph()
+    loss = mse(gram(recon_r).mul_(1000), gram(x_r).mul_(1000))
+    # loss = tf.losses.mean_squared_error(
+    #     gram_matrix(recon_r),
+    #     gram_matrix(x_r),
+    #     reduction=tf.losses.Reduction.MEAN
+    # )
+
+    # sess = tf.Session()
+    # sess.run(tf.global_variables_initializer())
+    # # tf 轉 numpy
+    # loss = loss.eval(session=sess)
+    # # numpy 轉 pytorch_Tensor
+    # loss_temp = torch.from_numpy(np.array(loss, dtype=np.float64))
+    # # loss= Variable(loss)
+    # tf.reset_default_graph()
     return loss
 
 
@@ -97,12 +185,12 @@ class Loss:
             else:
                 # loss_a = self.mse_loss(self_E.discriminator(
                 #     recon_image), self_E.discriminator(x_))
+                # print(self_E.discriminator(recon_image))
                 loss_a = 0.5 * \
                     torch.mean((self_E.discriminator(recon_image) - 1)**2)
                 loss_G = loss_a
 
         if 'P' in self_E.model_loss:
-            # print("creat P loss")
             ############## VGG maxpooling_2 #################
             recon_loss_m2 = self_E.VGG_m2_model(recon_image)
             xs_loss_m2 = self_E.VGG_m2_model(x_)
@@ -121,21 +209,6 @@ class Loss:
             # 輸入整張圖到model，將conv1_1，conv2_1，conv3_1的feature map取出
             # 並切成16*16大小做loss運算
             ###############################################
-            # print("creat T loss")
-            # self.T_model, style_losses = StyleLoss.get_style_model_and_losses(self, self.vgg19,
-            #                                                                   self.normalization_mean, self.normalization_std, x_, recon_image)
-            # self.T_model(recon_image)
-            # # utils.print_network(self.T_model)
-            # i = 0
-            # for sl in style_losses:
-            #     if i == style_losses.__len__():
-            #         style_score += sl.loss*0.3
-            #         i += 1
-            #     else:
-            #         style_score += sl.loss
-
-            # style_score = style_score.cuda() if self.gpu_mode else style_score
-
             loss_conv1_1 = T_loss_op(self.patch_size,
                                      self_E.conv1_1, recon_image, x_)
             loss_conv2_1 = T_loss_op(self.patch_size,
@@ -144,8 +217,8 @@ class Loss:
                                      self_E.conv3_1, recon_image, x_)
 
             style_score = loss_conv1_1*0.3+loss_conv2_1+loss_conv3_1
-            temp = style_score*1e-6
-            tf.reset_default_graph()
+
+            # tf.reset_default_graph()
             # if not style_score==0:
             #     print("style=%.4f   style=%.4f" % (style_score, temp))
             # style_score = loss_conv1_1*0.3s

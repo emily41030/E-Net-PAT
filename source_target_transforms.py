@@ -140,12 +140,20 @@ class RandomCrop(object):
             lr = F.pad(lr, self.padding)
             bc = F.pad(bc, self.padding)
         i, j, h, w = self.get_params(data, self.size)
-        # if h % 4 != 0:
-        #     h = h+4-(h % 4)
-        # if w % 4 != 0:
-        #     w = w+4-(w % 4)
-        # return F.crop(hr, i, j, h, w), F.crop(lr, i, j, h/4, w/4),  F.crop(bc, i, j, h, w)
-        return F.crop(hr, i, j, h, w), F.crop(lr, i, j, h, w),  F.crop(bc, i, j, h, w)
+        if h % 4 != 0:
+            h = h+4-(h % 4)
+        if w % 4 != 0:
+            w = w+4-(w % 4)
+        # if i % 4 != 0:
+        #     i = i+4-(i % 4)
+        # if j % 4 != 0:
+        #     j = j+4-(j % 4)
+        lr = F.crop(lr, i, j, h, w)
+        lr = lr.resize((int(w/4),
+                        int(h/4)),
+                       resample=PIL.Image.BICUBIC)
+        # return F.crop(hr, i, j, h, w), F.crop(lr, i/4, j/4, h/4, w/4),  F.crop(bc, i, j, h, w)
+        return F.crop(hr, i, j, h, w), lr,  F.crop(bc, i, j, h, w)
 
 
 class ToTensor(object):
